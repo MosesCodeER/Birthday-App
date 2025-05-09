@@ -1117,31 +1117,38 @@ export default function BirthdayApp() {
                       >
                         <ChevronDown size={16} />
                       </button>
-                      {openMenuId === birthday.id && (
-                        <div className="absolute right-0 mt-1 bg-white border rounded shadow-lg z-10">
-                          <a
-                            href={socialShareUrls(birthday).twitter}
-                            target="_blank" rel="noopener"
-                            className="block px-3 py-1 hover:bg-gray-100"
-                          >
-                            Twitter
-                          </a>
-                          <a
-                            href={socialShareUrls(birthday).facebook}
-                            target="_blank" rel="noopener"
-                            className="block px-3 py-1 hover:bg-gray-100"
-                          >
-                            Facebook
-                          </a>
-                          <a
-                            href={socialShareUrls(birthday).whatsapp}
-                            target="_blank" rel="noopener"
-                            className="block px-3 py-1 hover:bg-gray-100"
-                          >
-                            WhatsApp
-                          </a>
-                        </div>
-                      )}
+                   {openMenuId === birthday.id && (
+                 <div className="absolute right-0 mt-1 bg-white dark:bg-gray-800 border rounded shadow-lg z-10">
+                  <a
+                     href={socialShareUrls(birthday).twitter}
+                     target="_blank" rel="noopener"
+                   className={`block px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700 ${
+        darkMode ? 'text-gray-100' : 'text-gray-900'
+                                             }`}
+                                         >
+      Twitter
+    </a>
+    <a
+      href={socialShareUrls(birthday).facebook}
+      target="_blank" rel="noopener"
+      className={`block px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700 ${
+        darkMode ? 'text-gray-100' : 'text-gray-900'
+      }`}
+    >
+      Facebook
+    </a>
+    <a
+      href={socialShareUrls(birthday).whatsapp}
+      target="_blank" rel="noopener"
+      className={`block px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700 ${
+        darkMode ? 'text-gray-100' : 'text-gray-900'
+      }`}
+    >
+      WhatsApp
+    </a>
+  </div>
+)}
+
                     </div>
 
                     <button
