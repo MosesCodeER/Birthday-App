@@ -2,10 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { 
   Calendar, Gift, Bell, Edit, Trash2, Plus, User, X, Cake, Heart, 
   Star, Search, Moon, Sun, Filter, Download, Upload, MessageCircle,
-  Settings, ChevronDown, Tags, Package, CheckCircle, ArrowUpDown, Save
+  Settings, ChevronDown, Tags, Package, CheckCircle, ArrowUpDown, Save,
+  Share2, Mail, Copy, Facebook, Twitter, Smartphone
 } from 'lucide-react';
 
-// Main App Component
 export default function BirthdayApp() {
   const [birthdays, setBirthdays] = useState([]);
   const [newBirthdayForm, setNewBirthdayForm] = useState({
@@ -24,9 +24,40 @@ export default function BirthdayApp() {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeFilter, setActiveFilter] = useState('all');
   const [showBirthdayDetail, setShowBirthdayDetail] = useState(null);
-  const [sortBy, setSortBy] = useState('upcoming'); // 'upcoming' or 'name'
+  const [sortBy, setSortBy] = useState('upcoming'); 
+  const [openMenuId, setOpenMenuId] = useState(null);
+  const toggleShareMenu = id =>
+    setOpenMenuId(openMenuId === id ? null : id);
+  const socialShareUrls = b => {
+    const text = encodeURIComponent(
+      `${b.name}'s birthday is on ${b.date}!`
+    );
+    const url = encodeURIComponent(window.location.href);
+    return {
+      twitter:  `https://twitter.com/intent/tweet?text=${text}%20${url}`,
+      facebook: `https://www.facebook.com/sharer/sharer.php?u=${url}&quote=${text}`,
+      whatsapp:`https://api.whatsapp.com/send?text=${text}%20${url}`
+    };
+  };
+  const shareBirthday = async b => {
+    const text = `${b.name}'s birthday is on ${b.date}. ${b.notes || ''}`.trim();
+    const url  = window.location.href;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: 'Birthday Buddy', text, url });
+      } catch (err) {
+        console.error('Share failed:', err);
+      }
+    } else {
+      try {
+        await navigator.clipboard.writeText(`${text} ${url}`);
+        alert('Birthday info copied to clipboard!');
+      } catch {
+        prompt('Copy this text to share:', `${text} ${url}`);
+      }
+    }
+  };
 
-  // Load settings and data from localStorage on initial render
   useEffect(() => {
     const savedBirthdays = localStorage.getItem('birthdays');
     const savedDarkMode = localStorage.getItem('darkMode');
@@ -55,8 +86,38 @@ export default function BirthdayApp() {
       document.body.classList.remove('dark-mode');
     }
   }, [darkMode]);
+  useEffect(() => {
+    if ('Notification' in window) {
+      Notification.requestPermission()
+        .then(permission => console.log('Notif permission:', permission));
+    }
+  }, []);
 
-  // Check for today's birthdays
+  useEffect(() => {
+    if (Notification.permission !== 'granted') return;
+
+    const now = new Date();
+    birthdays.forEach(b => {
+      const [year, month, day] = b.date.split('-').map(Number);
+      let next = new Date(now.getFullYear(), month - 1, day);
+      if (next < now) next.setFullYear(now.getFullYear() + 1);
+
+      const remindDays = parseInt(b.reminder, 10);
+      const remindDate = new Date(next);
+      remindDate.setDate(next.getDate() - remindDays);
+
+      if (
+        remindDate.getFullYear() === now.getFullYear() &&
+        remindDate.getMonth()    === now.getMonth() &&
+        remindDate.getDate()     === now.getDate()
+      ) {
+        new Notification('🎂 Birthday Reminder', {
+          body: `${b.name}'s birthday is in ${remindDays} day${remindDays>1?'s':''} (${b.date})`
+        });
+      }
+    });
+  }, [birthdays]);
+
   const checkTodaysBirthdays = () => {
     const today = new Date();
     const month = today.getMonth() + 1;
@@ -460,7 +521,7 @@ export default function BirthdayApp() {
           </div>
         </div>
       )}
-
+     
       {/* Birthday Reminders */}
       {upcomingReminders.length > 0 && (
         <div className={`${
@@ -1038,6 +1099,51 @@ export default function BirthdayApp() {
                     >
                       <Trash2 size={16} />
                     </button>
+                      {/* Native “Share…” */}
+                    <button
+                      onClick={() => shareBirthday(birthday)}
+                      className="p-2 rounded-full hover:bg-gray-200 transition-colors"
+                      title="Share…"
+                    >
+                      <Share2 size={16} />
+                    </button>
+
+                    {/* Social-media dropdown */}
+                    <div className="relative inline-block">
+                      <button
+                        onClick={() => toggleShareMenu(birthday.id)}
+                        className="p-2 rounded-full hover:bg-gray-200 transition-colors"
+                        title="Share on social"
+                      >
+                        <ChevronDown size={16} />
+                      </button>
+                      {openMenuId === birthday.id && (
+                        <div className="absolute right-0 mt-1 bg-white border rounded shadow-lg z-10">
+                          <a
+                            href={socialShareUrls(birthday).twitter}
+                            target="_blank" rel="noopener"
+                            className="block px-3 py-1 hover:bg-gray-100"
+                          >
+                            Twitter
+                          </a>
+                          <a
+                            href={socialShareUrls(birthday).facebook}
+                            target="_blank" rel="noopener"
+                            className="block px-3 py-1 hover:bg-gray-100"
+                          >
+                            Facebook
+                          </a>
+                          <a
+                            href={socialShareUrls(birthday).whatsapp}
+                            target="_blank" rel="noopener"
+                            className="block px-3 py-1 hover:bg-gray-100"
+                          >
+                            WhatsApp
+                          </a>
+                        </div>
+                      )}
+                    </div>
+
                     <button
                       onClick={() => setShowBirthdayDetail(birthday.id !== showBirthdayDetail ? birthday.id : null)}
                       className={`${
